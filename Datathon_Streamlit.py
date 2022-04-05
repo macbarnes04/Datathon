@@ -8,7 +8,7 @@ from annotated_text import annotated_text
 import altair as alt
 
 st.set_page_config(
-    page_title="NCSSM - Broadband Report",
+    page_title="NCSSM - Broadband Progress Report",
 )
 
 
@@ -25,8 +25,9 @@ def df_from_hdf(hdf="database.h5", name="broadband_survey"):
 aggregate = df_from_hdf(name="year_county_survey")
 var_data = df_from_hdf(name="year_county_variability")
 
-st.write(var_data)
-st.write(var_data['variability'].describe())
+# st.write(aggregate)
+# st.write(aggregate['per_access'].describe())
+# st.write(var_data['variability'].describe())
 # DATA PREPROCESSING
 df = df.loc[df["state_code"] == 37]  # only NC
 
@@ -60,7 +61,7 @@ st.sidebar.title("Choose a county:")
 selectbox_options = [
     "All", *sorted(df["county_name"].value_counts().index.to_list())]
 full_county = st.sidebar.selectbox(
-    'Generate report',
+    'Generate progress report',
     selectbox_options,
 )
 
@@ -82,11 +83,12 @@ data_using = None
 
 colors = {
     "lower than average": "#ff7a7a",
-    "average": "#ffda33",
+    "average": "#d1ae0f",
     "higher than average": "#00a627",
 }
 if abbr_chosen == "All":
-    st.markdown("# Tracking the NC Digital Divide: A Report Card Dashboard 📄")
+    st.markdown(
+        "# Tracking the NC Digital Divide: A Progress Report 📄")
     # find the average of the column per_access in nc_counties_join
 
     # st.markdown("#### Overall, " + str(nc_avg_per_access) +
@@ -158,7 +160,7 @@ else:
 
     spec_per = round(
         float(data_using["per_access"].to_string().split()[1]) * 100, 2)
-    st.markdown("# " + full_county + "'s Report 📄")
+    st.markdown("# " + full_county + "'s Progress Report 📄")
     # per_access_string = "#### " + \
     #     str(spec_per) + "% have access to broadband internet"
     # st.write(per_access_string)
@@ -212,11 +214,34 @@ else:
 #     icon=folium.Icon(icon="cloud"),
 # ).add_to(m)
 
+st.write()
 
 # st.write(nc_data)
 
 
-# individualized charts
+def get_broad_score(score):
+    mid_cutff = 40
+    max_cutoff = 60
+
+    score = round(score, 2)
+
+    if score > max_cutoff:
+        level = "higher than average"
+        annotated_text(
+            (str(score), "sufficient", colors[level]),
+        )
+    elif score > mid_cutff:
+        level = "average"
+        annotated_text(
+            (str(score), "sufficient", colors[level]),
+        )
+    else:
+        level = "lower than average"
+        annotated_text(
+            (str(score), "insufficient", colors[level]),
+        )
+        # individualized charts
+
 
 def get_vari_score(score):
     min_cutoff = 0.0030
@@ -251,7 +276,7 @@ def get_vari_score(score):
         st.markdown(
             "- Spread out surveyors around the counties")
 
-    elif score > min_cutoff:
+    else:
         level = "lower than average"
         annotated_text(
             (str(score), "insufficient", colors[level]),
@@ -275,7 +300,7 @@ if full_county != "All":
     st.markdown("## " + full_county + "'s Statistics")
 
     col1, col2 = st.columns(2)
-    avgs = [nc_avg_per_access for _ in range(len(per_access_year))]
+    avgs = [25 for _ in range(len(per_access_year))]
 
     per_access_year = np.array(per_access_year)*100
     access_chart_lines = np.array(
@@ -287,15 +312,15 @@ if full_county != "All":
 
         st.write(full_county + ": Broadband access vs. Time")
         st.line_chart(chart_data)
-        chart_data_var = pd.DataFrame(
-            var_by_year, columns=["variability"], index=years)
 
     with col2:
-        st.write("blah blah blah")
+        get_broad_score(per_access_year[-1])
 
     col1_1, col2_1 = st.columns(2)
 
     with col1_1:
+        chart_data_var = pd.DataFrame(
+            var_by_year, columns=["variability"], index=years)
         st.write(full_county + ": Quality of Survey Data vs. Time")
         st.line_chart(chart_data_var)
 
