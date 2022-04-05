@@ -24,7 +24,7 @@ def df_from_hdf(hdf="database.h5", name="broadband_survey"):
 
 aggregate = df_from_hdf(name="year_county_survey")
 var_data = df_from_hdf(name="year_county_variability")
-
+racial_data = pd.read_csv('2counties_racial.csv')
 # st.write(aggregate)
 # st.write(aggregate['per_access'].describe())
 # st.write(var_data['variability'].describe())
@@ -208,17 +208,6 @@ else:
         "##### Survey indicated that " + str(len(df_using_filtered)) + " people who indicated on the survey have access to broadband internet in " + full_county + " (out of " + str(len(df_using)) + " people).")
 
 
-# folium.Marker(
-#     location=[34.9790, -79.2461],
-#     popup="Mt. Hood Meadows",
-#     icon=folium.Icon(icon="cloud"),
-# ).add_to(m)
-
-st.write()
-
-# st.write(nc_data)
-
-
 def get_broad_score(score):
     mid_cutff = 40
     max_cutoff = 60
@@ -236,11 +225,11 @@ def get_broad_score(score):
     elif score > mid_cutff:
         level = "average"
         annotated_text(
-            (str(score), "progressive", colors[level]),
+            (str(score), "progressing", colors[level]),
         )
 
         st.markdown("**Observe Other County’s Goals and Actions**")
-        st.markdown("- This progressive rating means that in relation to other counties, this county is averaging well in terms of progress. However, there is room for improvement. This means that it could be in the best interest to inspect what other counties are doing to increase their progress towards the 2025 and 2030 goals.")
+        st.markdown("- This progressing rating means that in relation to other counties, this county is averaging well in terms of progress. However, there is room for improvement. This means that it could be in the best interest to inspect what other counties are doing to increase their progress towards the 2025 and 2030 goals.")
     else:
         level = "lower than average"
         annotated_text(
@@ -270,7 +259,7 @@ def get_vari_score(score):
     elif score > mid_cutoff:
         level = "average"
         annotated_text(
-            (str(score), "progressive", colors[level]),
+            (str(score), "progressing", colors[level]),
         )
         st.markdown(
             "**Put more resources and efforts into collecting accurate analytical data**")
@@ -302,6 +291,69 @@ def get_vari_score(score):
             "- Properly address the issues that cause such a lack of broadband access")
 
     st.write("")
+
+
+def get_racial(score):
+    score = round(np.abs(score).to_list()[0], 2)
+
+    if score > 0.1:
+        level = "lower than average"
+        annotated_text(
+            (str(score), "insufficient", colors[level]),
+        )
+        st.markdown(
+            "**Understand Racial Compositions**")
+        st.markdown(
+            "- Starting with county-level populations, understand neighborhood racial compostions and the reason why certain groups are more prevalant in those areas")
+        st.markdown(
+            "- Take into consideration the ratios of minority races to majority races in the county population that have broadband access."
+        )
+        st.markdown(
+            "- Understand why minority races lack broadband access."
+        )
+
+        st.markdown(
+            "**Approach diversity causation by underlying reasons above**")
+        st.markdown(
+            "- Poverty and lack of financial resources: promote financial literacy, government financial aid, create job opportunities, raise minimal wage, relive areas of poverty focus such as food, shelter, and health care"
+        )
+        st.markdown(
+            "- Lack of education: promote the development of schools, fund schools, hire high-quality educators, develop and refine educational policies, create educational programs for underrepresented children"
+        )
+
+        st.markdown("**Strongly encourage racial equity**")
+        st.markdown(
+            "- Prioritize providing broadband access to races that don’t have it to balance the racial disparity."
+        )
+        st.markdown(
+            "- Develop environmental and cultural acceptance in geographic locations (Foster diverse cultural shops/attractions to attract races and make them want to migrate)"
+        )
+        st.markdown(
+            "- Integrate educational establishments such as libraries in certain school districts to attract excluded racial groups in search of better opportunities"
+        )
+
+        st.markdown("**Integrate infrastructure and initaite plans**")
+        st.markdown(
+            "- Set strict timelines and deadlines for integration of solutions"
+        )
+        st.markdown(
+            "- Progress towards goals")
+    else:
+        level = "higher than average"
+        annotated_text(
+            (str(score), "Sufficient", colors[level]),
+        )
+
+        st.markdown("**Maintain racial equity**")
+        st.markdown(
+            "- Racial equity within the county is prevalant and many miniority groups are given the same broadband access as majority racial groups."
+        )
+        st.markdown(
+            "- Continue providing access to all racial groups within the county"
+        )
+
+        st.markdown(
+            "- Focus more on the racial groups and the locations within the county that aren’t up to par yet")
 
 
 if full_county != "All":
@@ -339,73 +391,96 @@ if full_county != "All":
     with col2_1:
         get_vari_score(np.average(var_by_year))
 
-    # source = chart_data.reset_index().melt('x', var_name='category', value_name='y')
+    col1_2, col2_2 = st.columns(2)
 
-    # line_chart = alt.Chart(chart_data).mark_line().encode(
-    #     alt.X(title='Year'),
-    #     alt.Y(title='Amount in liters'),
-    # ).properties(
-    #     title='Sales of consumer goods'
-    # )
+    with col1_2:
+        st.write(full_county + ": % Access by Race")
+        racial_data = racial_data.loc[racial_data["county"] == abbr_chosen]
+        racial_data_use = racial_data["white_access"] + \
+            racial_data["black_access"]
+        np_arr = racial_data[["black_access", "white_access",
+                              "latino_access"]].iloc[0].to_numpy()
 
-    # st.altair_chart(line_chart)
+        st.write()
+        chart_data_var = pd.DataFrame(
+            np_arr,
+            columns=["% Access"],
+            index=["Black", "White", "Latino"]
+        )
+        print(chart_data_var)
+        # pd.DataFrame(
+        #    racial_data_use, index=("White", "Black"))
+        # st.write(full_county + ": Quality of Survey Data vs. Time")
+        st.bar_chart(chart_data_var)
 
+    with col2_2:
+        # get_vari_score(np.average(var_by_year))
+        get_racial(racial_data["black_access"] - racial_data["white_access"])
 
-# DEFINITIONS
+        # source = chart_data.reset_index().melt('x', var_name='category', value_name='y')
 
+        # line_chart = alt.Chart(chart_data).mark_line().encode(
+        #     alt.X(title='Year'),
+        #     alt.Y(title='Amount in liters'),
+        # ).properties(
+        #     title='Sales of consumer goods'
+        # )
 
-# def generate_plan():
-#     precint_names = pd.read_json("PrecintNames.json")
-#     pef = [precint_names, model_predict()]
-#     nc_precs = gpd.read_file('NC_precs_all_data.geojson')
-#     nc_precs_join = nc_precs.merge(pef, left_on='loc_prec', right_on='Precint_ID', how='left')
-#     nc_precs_dissolve = nc_precs_join.dissolve(by='assignment')
-#     nc_precs_dissolve['assign'] = nc_precs_dissolve.index.copy()
-#     return nc_precs_dissolve
-#
-#
-# def create_map():
-#     m = folium.Map(location=[35.6516, -80.3018], tiles="CartoDB positron", name="Light Map",
-#                    zoom_start=7, attr="My Data Attribution")
-#     folium.Choropleth(
-#         geo_data=nc_precs_dissolve,
-#         name="choropleth",
-#         data=nc_precs_dissolve,
-#         columns=["assign", "ID"],
-#         key_on='feature.properties.assign',
-#         fill_color="YlOrRd",
-#         fill_opacity=0.7,
-#         line_opacity=0.1,
-#     ).add_to(m)
-#     return m
+        # st.altair_chart(line_chart)
 
+        # DEFINITIONS
 
-# # SIDEBAR PREFERENCES
-#
-# st.sidebar.title("Choose A State:")
-# state_mode = st.sidebar.selectbox(
-#     'What state would you like to generate a map for?',
-#     ['North Carolina']
-# )
-# st.sidebar.title("Decide Your Metrics:")
-# st.sidebar.subheader("Cut Edges")
-# cut_edges_input = st.sidebar.slider(
-#     'Select a cut edges score',
-#     574.0, 621.0
-# )
-# st.sidebar.subheader("Mean-Median")
-# pf_input = st.sidebar.number_input(
-#     "Desired mean-median score"
-# )
-# st.sidebar.title("Generate Map:")
-# generate = st.sidebar.button("Generate Map")
-# st.sidebar.header("Download Map")
-# shape_dl = st.sidebar.checkbox("Download .SHP")
-# geojson_dl = st.sidebar.checkbox("Download .GEOJSON")
-# pef_dl = st.sidebar.checkbox("Download Equivalency File")
-# download = st.sidebar.button("Download Files")
-# st.markdown("<h1 style='text-align: center; color: black;"
-#             "'>Set Preferences and Click Generate Map to see Districting Plan 🗺️ </h1>",
-#             unsafe_allow_html=True)
-#
-# read in precinct shapefile
+        # def generate_plan():
+        #     precint_names = pd.read_json("PrecintNames.json")
+        #     pef = [precint_names, model_predict()]
+        #     nc_precs = gpd.read_file('NC_precs_all_data.geojson')
+        #     nc_precs_join = nc_precs.merge(pef, left_on='loc_prec', right_on='Precint_ID', how='left')
+        #     nc_precs_dissolve = nc_precs_join.dissolve(by='assignment')
+        #     nc_precs_dissolve['assign'] = nc_precs_dissolve.index.copy()
+        #     return nc_precs_dissolve
+        #
+        #
+        # def create_map():
+        #     m = folium.Map(location=[35.6516, -80.3018], tiles="CartoDB positron", name="Light Map",
+        #                    zoom_start=7, attr="My Data Attribution")
+        #     folium.Choropleth(
+        #         geo_data=nc_precs_dissolve,
+        #         name="choropleth",
+        #         data=nc_precs_dissolve,
+        #         columns=["assign", "ID"],
+        #         key_on='feature.properties.assign',
+        #         fill_color="YlOrRd",
+        #         fill_opacity=0.7,
+        #         line_opacity=0.1,
+        #     ).add_to(m)
+        #     return m
+
+        # # SIDEBAR PREFERENCES
+        #
+        # st.sidebar.title("Choose A State:")
+        # state_mode = st.sidebar.selectbox(
+        #     'What state would you like to generate a map for?',
+        #     ['North Carolina']
+        # )
+        # st.sidebar.title("Decide Your Metrics:")
+        # st.sidebar.subheader("Cut Edges")
+        # cut_edges_input = st.sidebar.slider(
+        #     'Select a cut edges score',
+        #     574.0, 621.0
+        # )
+        # st.sidebar.subheader("Mean-Median")
+        # pf_input = st.sidebar.number_input(
+        #     "Desired mean-median score"
+        # )
+        # st.sidebar.title("Generate Map:")
+        # generate = st.sidebar.button("Generate Map")
+        # st.sidebar.header("Download Map")
+        # shape_dl = st.sidebar.checkbox("Download .SHP")
+        # geojson_dl = st.sidebar.checkbox("Download .GEOJSON")
+        # pef_dl = st.sidebar.checkbox("Download Equivalency File")
+        # download = st.sidebar.button("Download Files")
+        # st.markdown("<h1 style='text-align: center; color: black;"
+        #             "'>Set Preferences and Click Generate Map to see Districting Plan 🗺️ </h1>",
+        #             unsafe_allow_html=True)
+        #
+        # read in precinct shapefile
