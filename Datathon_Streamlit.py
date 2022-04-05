@@ -4,7 +4,7 @@ import folium
 from streamlit_folium import folium_static
 import pandas as pd
 import geopandas as gpd
-from annotated_text import annotated_text
+import annotated_text
 
 # READING IN DATA
 df = pd.read_csv("broadband_survey.csv")
@@ -99,7 +99,7 @@ else:
 
     spec_per = round(
         float(data_using["per_access"].to_string().split()[1]) * 100, 2)
-    st.markdown("# " + full_county + "'s grade report 📄")
+    st.markdown("# " + full_county + "'s Grade Report 📄")
     # per_access_string = "#### " + \
     #     str(spec_per) + "% have access to broadband internet"
     # st.write(per_access_string)
