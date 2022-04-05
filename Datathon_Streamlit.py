@@ -391,31 +391,35 @@ if full_county != "All":
     with col2_1:
         get_vari_score(np.average(var_by_year))
 
-    col1_2, col2_2 = st.columns(2)
+    # st.write(racial_data)
 
-    with col1_2:
-        st.write(full_county + ": % Access by Race")
-        racial_data = racial_data.loc[racial_data["county"] == abbr_chosen]
-        racial_data_use = racial_data["white_access"] + \
-            racial_data["black_access"]
-        np_arr = racial_data[["black_access", "white_access",
-                              "latino_access"]].iloc[0].to_numpy()
+    if (abbr_chosen == "BUNCOMBE" or abbr_chosen == "BURKE"):
+        col1_2, col2_2 = st.columns(2)
 
-        st.write()
-        chart_data_var = pd.DataFrame(
-            np_arr,
-            columns=["% Access"],
-            index=["Black", "White", "Latino"]
-        )
-        print(chart_data_var)
-        # pd.DataFrame(
-        #    racial_data_use, index=("White", "Black"))
-        # st.write(full_county + ": Quality of Survey Data vs. Time")
-        st.bar_chart(chart_data_var)
+        with col1_2:
+            st.write(full_county + ": % Access by Race")
+            racial_data = racial_data.loc[racial_data["county"] == abbr_chosen]
+            racial_data_use = racial_data["white_access"] + \
+                racial_data["black_access"]
+            np_arr = racial_data[["black_access", "white_access",
+                                  "latino_access"]].iloc[0].to_numpy()
 
-    with col2_2:
-        # get_vari_score(np.average(var_by_year))
-        get_racial(racial_data["black_access"] - racial_data["white_access"])
+            st.write()
+            chart_data_var = pd.DataFrame(
+                np_arr,
+                columns=["% Access"],
+                index=["Black", "White", "Latino"]
+            )
+            print(chart_data_var)
+            # pd.DataFrame(
+            #    racial_data_use, index=("White", "Black"))
+            # st.write(full_county + ": Quality of Survey Data vs. Time")
+            st.bar_chart(chart_data_var)
+
+        with col2_2:
+            # get_vari_score(np.average(var_by_year))
+            get_racial(racial_data["black_access"] -
+                       racial_data["white_access"])
 
         # source = chart_data.reset_index().melt('x', var_name='category', value_name='y')
 
