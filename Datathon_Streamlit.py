@@ -7,6 +7,11 @@ import geopandas as gpd
 from annotated_text import annotated_text
 import altair as alt
 
+st.set_page_config(
+    page_title="NCSSM - Broadband Report",
+)
+
+
 # READING IN DATA
 df = pd.read_csv("broadband_survey.csv")
 nc_counties = gpd.read_file('NC Counties2.geojson')
@@ -18,7 +23,7 @@ def df_from_hdf(hdf="database.h5", name="broadband_survey"):
 
 
 aggregate = df_from_hdf(name="year_county_survey")
-
+var_data = df_from_hdf(name="year_county_variability")
 # DATA PREPROCESSING
 df = df.loc[df["state_code"] == 37]  # only NC
 
@@ -47,14 +52,15 @@ for full_name in full_county_names:
         if full_name.split()[0].lower() == abbr_name.lower():
             full_to_abbr_names[full_name] = abbr_name
 
-st.sidebar.title("Choose your metrics:")
+st.sidebar.title("Choose a county:")
 
 selectbox_options = [
     "All", *sorted(df["county_name"].value_counts().index.to_list())]
 full_county = st.sidebar.selectbox(
-    'County Name',
+    'Generate report',
     selectbox_options,
 )
+
 
 # User options
 abbr_chosen = full_to_abbr_names[full_county]
@@ -149,7 +155,7 @@ else:
 
     spec_per = round(
         float(data_using["per_access"].to_string().split()[1]) * 100, 2)
-    st.markdown("# " + full_county + "'s Grade Report 📄")
+    st.markdown("# " + full_county + "'s Report 📄")
     # per_access_string = "#### " + \
     #     str(spec_per) + "% have access to broadband internet"
     # st.write(per_access_string)
@@ -166,13 +172,21 @@ else:
         " have access to broadband internet",
     )
 
+    st.write("")
+
     data_agg = aggregate.loc[aggregate["county_name"] == full_county]
 
     data_agg.sort_values(by="year", inplace=True)
     years = data_agg["year"].unique()
     per_access_year = data_agg["per_access"].to_list()
 
+    variable_agg = var_data.loc[aggregate["county_name"] == full_county]
+    variable_agg.sort_values(by="date", inplace=True)
+    var_years = variable_agg["date"].unique()
+    var_by_year = variable_agg["variability"].to_list()
+
     df_using = df.loc[df["county_name"] == full_county]
+    df_using = df_using.query("(dl_speed >= 100) and (ul_speed >= 20)")
 
     X = df_using['X']
     Y = df_using['Y']
@@ -184,6 +198,7 @@ else:
         columns=['lat', 'lon'])
 
     st.map(df)
+    st.write("People who have access to broadband internet in " + full_county)
 
 
 # folium.Marker(
@@ -200,12 +215,24 @@ else:
 
 
 if full_county != "All":
+    # BROADBAND CHART
     st.markdown("## " + full_county + "'s Statistics")
-    chart_data = pd.DataFrame(
-        per_access_year, columns=["per_access"], index=years)
 
-    st.write(full_county + ": Broadband access vs. Time")
-    st.line_chart(chart_data)
+    col1, col2 = st.columns(2)
+
+    with col1:
+        chart_data = pd.DataFrame(
+            per_access_year, columns=["per_access"], index=years)
+
+        st.write(full_county + ": Broadband access vs. Time")
+        st.line_chart(chart_data)
+        chart_data_var = pd.DataFrame(
+            var_by_year, columns=["variability"], index=years)
+
+    with col2:
+
+        st.write(full_county + ": Quality of Survey Data vs. Time")
+        st.line_chart(chart_data_var)
 
     # source = chart_data.reset_index().melt('x', var_name='category', value_name='y')
 
