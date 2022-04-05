@@ -13,7 +13,7 @@ df["RecordedDate"] = pd.to_datetime(df["RecordedDate"])
 #print(min(df["RecordedDate"]))
 #print(df["c_primary_reason_no_internet"].value_counts())
 df = df.loc[df["state_code"] == 37]
-
+"""
 groups = df.groupby(by=["county_code", pd.Grouper(key="RecordedDate", freq="1Y")])
 #groups = df.groupby(by=["county_code"])
 
@@ -42,9 +42,9 @@ alamance = week_county.loc[week_county["county_code"] == 1]
 plt.scatter(alamance["week"],alamance["per_access"])
 #plt.show()
 #exit()
-
-groups = df.groupby(by=["county_code", pd.Grouper(key="RecordedDate", freq="1Y")])
+"""
 #groups = df.groupby(by=["county_code"])
+groups = df.groupby(by=["county_code", pd.Grouper(key="RecordedDate", freq="1W")])
 
 groups = [x[1] for x in groups]
 records = []
@@ -54,11 +54,44 @@ for i, group in enumerate(groups):
         "per_access": per_access,
         "county_name": group["county_name"].iloc[0],
         "county_code": group["county_code"].iloc[0],
-        "date": group["RecordedDate"].dt.strftime("%Y-%m").iloc[0]
+        "RecordedDate": group["RecordedDate"].iloc[0]
+    }
+    records.append(obj)
+
+df = pd.DataFrame.from_records(records)
+
+
+groups = df.groupby(by=["county_code", pd.Grouper(key="RecordedDate", freq="1M")])
+
+groups = [x[1] for x in groups]
+records = []
+for i, group in enumerate(groups):
+    obj = {
+        "std_dev": group["per_access"].std(),
+        "county_name": group["county_name"].iloc[0],
+        "county_code": group["county_code"].iloc[0],
+        "RecordedDate": group["RecordedDate"].iloc[0]
+    }
+    records.append(obj)
+
+
+df = pd.DataFrame.from_records(records)
+groups = df.groupby(by=["county_code", pd.Grouper(key="RecordedDate", freq="1Y")])
+
+
+groups = [x[1] for x in groups]
+records = []
+
+for i, group in enumerate(groups):
+    obj = {
+        "variability": group["std_dev"].mean(),
+        "county_name": group["county_name"].iloc[0],
+        "county_code": group["county_code"].iloc[0],
+        "date": group["RecordedDate"].dt.strftime("%Y").iloc[0]
     }
     records.append(obj)
 
 ndf = pd.DataFrame.from_records(records)
 ndf = ndf.sort_values(by="county_code")
-ndf.to_csv("county_data.csv",index=False)
-print(ndf)
+
+ndf.to_hdf("database.h5",key="year_county_variability",mode="a")
