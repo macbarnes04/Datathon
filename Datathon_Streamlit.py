@@ -89,7 +89,7 @@ if abbr_chosen == "All":
     # st.markdown("#### Overall, " + str(nc_avg_per_access) +
     #             "% of people have access to broadband")
     annotated_text(
-        (str(nc_avg_per_access) + "%", "higher than national average", "#ff7a7a"),
+        (str(25) + "%", "higher than national average", "#ff7a7a"),
         " of families do not have internet at all ",
     )
 
@@ -186,10 +186,11 @@ else:
     var_by_year = variable_agg["variability"].to_list()
 
     df_using = df.loc[df["county_name"] == full_county]
-    df_using = df_using.query("(dl_speed >= 100) and (ul_speed >= 20)")
+    df_using_filtered = df_using.query(
+        "(dl_speed >= 100) and (ul_speed >= 20)")
 
-    X = df_using['X']
-    Y = df_using['Y']
+    X = df_using_filtered['X']
+    Y = df_using_filtered['Y']
 
     coords_use = np.array(list(zip(Y, X)))
 
@@ -198,7 +199,8 @@ else:
         columns=['lat', 'lon'])
 
     st.map(df)
-    st.write("People who have access to broadband internet in " + full_county)
+    st.markdown(
+        "##### Survey indicated that" + str(len(df_using_filtered)) + " people who indicated on the survey have access to broadband internet in " + full_county + ". (out of " + str(len(df_using)) + " people)")
 
 
 # folium.Marker(
@@ -219,10 +221,15 @@ if full_county != "All":
     st.markdown("## " + full_county + "'s Statistics")
 
     col1, col2 = st.columns(2)
+    avgs = [nc_avg_per_access for _ in range(len(per_access_year))]
+
+    per_access_year = np.array(per_access_year)*100
+    access_chart_lines = np.array(
+        list(zip(per_access_year, avgs)))
 
     with col1:
         chart_data = pd.DataFrame(
-            per_access_year, columns=["per_access"], index=years)
+            access_chart_lines, columns=[full_county, "NC Average"], index=years)
 
         st.write(full_county + ": Broadband access vs. Time")
         st.line_chart(chart_data)
@@ -230,7 +237,6 @@ if full_county != "All":
             var_by_year, columns=["variability"], index=years)
 
     with col2:
-
         st.write(full_county + ": Quality of Survey Data vs. Time")
         st.line_chart(chart_data_var)
 
