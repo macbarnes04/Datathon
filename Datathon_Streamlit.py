@@ -11,6 +11,13 @@ df = pd.read_csv("broadband_survey.csv")
 nc_counties = gpd.read_file('NC Counties2.geojson')
 nc_data = pd.read_csv("county_data.csv")
 
+
+def df_from_hdf(hdf="database.h5", name="broadband_survey"):
+    return pd.read_hdf(hdf, key=name)
+
+
+aggregate = df_from_hdf()
+
 # DATA PREPROCESSING
 df = df.loc[df["state_code"] == 37]  # only NC
 
@@ -67,7 +74,7 @@ data_using = None
 colors = {
     "lower than average": "#ff7a7a",
     "average": "#ffda33",
-    "higher than average": "#00f070",
+    "higher than average": "#00a627",
 }
 if abbr_chosen == "All":
     st.markdown("# Tracking the NC Digital Divide: A Report Card Dashboard 📄")
@@ -77,7 +84,7 @@ if abbr_chosen == "All":
     #             "% of people have access to broadband")
     annotated_text(
         "The average percentage of people in North Carolina who have access to broadband is ",
-        (str(nc_avg_per_access) + "%", "low", "#ff7a7a"),
+        (str(nc_avg_per_access) + "%", "lower than national average", "#ff7a7a"),
     )
 
     # annotated_text(
