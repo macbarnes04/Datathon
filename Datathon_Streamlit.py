@@ -24,6 +24,8 @@ def df_from_hdf(hdf="database.h5", name="broadband_survey"):
 
 aggregate = df_from_hdf(name="year_county_survey")
 var_data = df_from_hdf(name="year_county_variability")
+
+st.write(var_data)
 # DATA PREPROCESSING
 df = df.loc[df["state_code"] == 37]  # only NC
 
@@ -200,7 +202,7 @@ else:
 
     st.map(df)
     st.markdown(
-        "##### Survey indicated that" + str(len(df_using_filtered)) + " people who indicated on the survey have access to broadband internet in " + full_county + ". (out of " + str(len(df_using)) + " people)")
+        "##### Survey indicated that " + str(len(df_using_filtered)) + " people who indicated on the survey have access to broadband internet in " + full_county + " (out of " + str(len(df_using)) + " people).")
 
 
 # folium.Marker(
@@ -237,8 +239,16 @@ if full_county != "All":
             var_by_year, columns=["variability"], index=years)
 
     with col2:
+        st.write("blah blah blah")
+
+    col1_1, col2_1 = st.columns(2)
+
+    with col1_1:
         st.write(full_county + ": Quality of Survey Data vs. Time")
         st.line_chart(chart_data_var)
+
+    with col2_1:
+        st.write("bla blah blha")
 
     # source = chart_data.reset_index().melt('x', var_name='category', value_name='y')
 
