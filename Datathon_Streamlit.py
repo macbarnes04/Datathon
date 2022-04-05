@@ -128,6 +128,21 @@ if abbr_chosen == "All":
     # )
 
     data_using = nc_counties_join
+
+    st.write("")
+    folium.Choropleth(
+        geo_data=data_using,
+        name="choropleth",
+        data=data_using,
+        columns=["county_code", "per_access"],
+        key_on='feature.properties.county_code',
+        fill_color="Purples",
+        fill_opacity=1.0,
+        line_opacity=0.4,
+        legend_name='25/3 Broadband Access (% by County)',
+    ).add_to(m)
+    folium.LayerControl().add_to(m)
+    folium_static(m, width=850)
 else:
     data_using = nc_counties_join.loc[nc_counties_join["CO_NAME"]
                                       == abbr_chosen]
@@ -147,50 +162,45 @@ else:
         level = "average"
     annotated_text(
         (str(spec_per), "%", colors[level]),
-        " (" + level + ")" + " of people in " + full_county +
+        " (" + level + " in nc)" + " of people in " + full_county +
         " have access to broadband internet",
     )
-
-    st.write(aggregate)
 
     data_agg = aggregate.loc[aggregate["county_name"] == full_county]
 
     data_agg.sort_values(by="year", inplace=True)
-
-    st.write(data_agg)
     years = data_agg["year"].unique()
     per_access_year = data_agg["per_access"].to_list()
 
+    df_using = df.loc[df["county_name"] == full_county]
 
-print(np.random.randn(20, 3))
+    X = df_using['X']
+    Y = df_using['Y']
+
+    coords_use = np.array(list(zip(Y, X)))
+
+    df = pd.DataFrame(
+        coords_use,
+        columns=['lat', 'lon'])
+
+    st.map(df)
+
+
 # folium.Marker(
 #     location=[34.9790, -79.2461],
 #     popup="Mt. Hood Meadows",
 #     icon=folium.Icon(icon="cloud"),
 # ).add_to(m)
 
-st.write("")
-folium.Choropleth(
-    geo_data=data_using,
-    name="choropleth",
-    data=data_using,
-    columns=["county_code", "per_access"],
-    key_on='feature.properties.county_code',
-    fill_color="Purples",
-    fill_opacity=1.0,
-    line_opacity=0.4,
-    legend_name='25/3 Broadband Access (% by County)',
-).add_to(m)
 
 # st.write(nc_data)
 
 
 # individualized charts
-folium.LayerControl().add_to(m)
-folium_static(m, width=850, height=500)
-st.write(m)
+
 
 if full_county != "All":
+    st.markdown("## " + full_county + "'s Statistics")
     chart_data = pd.DataFrame(
         per_access_year, columns=["per_access"], index=years)
 
