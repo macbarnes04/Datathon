@@ -4,7 +4,8 @@ import folium
 from streamlit_folium import folium_static
 import pandas as pd
 import geopandas as gpd
-import annotated_text
+from annotated_text import annotated_text
+import altair as alt
 
 # READING IN DATA
 df = pd.read_csv("broadband_survey.csv")
@@ -12,12 +13,12 @@ nc_counties = gpd.read_file('NC Counties2.geojson')
 nc_data = pd.read_csv("county_data.csv")
 
 
-def df_from_hdf(hdf="./aggregate/database.h5", name="broadband_survey"):
+def df_from_hdf(hdf="database.h5", name="broadband_survey"):
     return pd.read_hdf(hdf, key=name)
 
 
-# aggregate = df_from_hdf(key="year_county_survey")
-# st.write(aggregate)
+aggregate = df_from_hdf(name="year_county_survey")
+
 # DATA PREPROCESSING
 df = df.loc[df["state_code"] == 37]  # only NC
 
@@ -66,8 +67,6 @@ abbr_chosen = full_to_abbr_names[full_county]
 
 m = folium.Map(location=[35.6516, -79.92], tiles="CartoDB positron",
                name="Light Map", zoom_start=7, attr="My Data Attribution")
-
-textColor = "#262730"
 
 nc_avg_per_access = round(nc_counties_join['per_access'].mean() * 100, 2)
 data_using = None
@@ -147,13 +146,23 @@ else:
     else:
         level = "average"
     annotated_text(
-        "There are ",
         (str(spec_per), "%", colors[level]),
         " (" + level + ")" + " of people in " + full_county +
-        " who have access to broadband internet",
+        " have access to broadband internet",
     )
 
+    st.write(aggregate)
 
+    data_agg = aggregate.loc[aggregate["county_name"] == full_county]
+
+    data_agg.sort_values(by="year", inplace=True)
+
+    st.write(data_agg)
+    years = data_agg["year"].unique()
+    per_access_year = data_agg["per_access"].to_list()
+
+
+print(np.random.randn(20, 3))
 # folium.Marker(
 #     location=[34.9790, -79.2461],
 #     popup="Mt. Hood Meadows",
@@ -176,9 +185,28 @@ folium.Choropleth(
 # st.write(nc_data)
 
 
+# individualized charts
 folium.LayerControl().add_to(m)
 folium_static(m, width=850, height=500)
-m
+st.write(m)
+
+if full_county != "All":
+    chart_data = pd.DataFrame(
+        per_access_year, columns=["per_access"], index=years)
+
+    st.write(full_county + ": Broadband access vs. Time")
+    st.line_chart(chart_data)
+
+    # source = chart_data.reset_index().melt('x', var_name='category', value_name='y')
+
+    # line_chart = alt.Chart(chart_data).mark_line().encode(
+    #     alt.X(title='Year'),
+    #     alt.Y(title='Amount in liters'),
+    # ).properties(
+    #     title='Sales of consumer goods'
+    # )
+
+    # st.altair_chart(line_chart)
 
 
 # DEFINITIONS
