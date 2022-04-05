@@ -22,12 +22,12 @@ df["none"] = 100-df["100/20%"]
 df[["none","100/20%"]] = df[["none","100/20%"]]/100
 df = df.dropna()
 df["population"] = df["population"].astype(int)
+df["county_name"] = df["County name"].str.split(pat=" County",expand=True)[0]
+df["county_name"] = df["county_name"].str.upper() 
 for i,group in df.groupby("county"):
-    print(group.iloc[0])
-    print(i)
-    exit()
     #print(group)
-    
+    if len(group) < 5:
+        continue
     race_fractions = np.array(group[["white%", "black%", "hispanic%", "other%"]]).T
     access_fractions = np.array(group[["100/20%","none"]]).T
 
@@ -42,7 +42,15 @@ for i,group in df.groupby("county"):
        demographic_group_names=race_names, 
        candidate_names=access_names, 
     )
-
-    print(ei_rbyc.summary())
-    print('here')
+    raw_pers = ei_rbyc.posterior_mean_voting_prefs
+    pers_df = pd.DataFrame(raw_pers, columns=access_names, index=race_names)
+    print(pers_df)
+    exit()
+    record = {
+        "black_access": pers_df.loc["Black", "Broadband Access"],
+        "white_access": pers_df.loc["White", "Broadband Access"],
+        "latino_access": per_df.loc["Latino", "Broadband Access"],
+        "county": group["county_name"].iloc[0]
+    }
+    print(record)
     exit()

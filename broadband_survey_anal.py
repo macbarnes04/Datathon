@@ -95,3 +95,5 @@ ndf = pd.DataFrame.from_records(records)
 ndf = ndf.sort_values(by="county_code")
 
 ndf.to_hdf("database.h5",key="year_county_variability",mode="a")
+
+def
