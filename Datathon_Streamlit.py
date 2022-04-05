@@ -26,6 +26,7 @@ aggregate = df_from_hdf(name="year_county_survey")
 var_data = df_from_hdf(name="year_county_variability")
 
 st.write(var_data)
+st.write(var_data['variability'].describe())
 # DATA PREPROCESSING
 df = df.loc[df["state_code"] == 37]  # only NC
 
@@ -217,6 +218,57 @@ else:
 
 # individualized charts
 
+def get_vari_score(score):
+    min_cutoff = 0.0030
+    mid_cutoff = 0.0240
+    max_cutoff = 0.0732
+
+    score = round(score, 2)
+    if score > max_cutoff:
+        level = "higher than average"
+        annotated_text(
+            (str(score), "sufficient", colors[level]),
+        )
+        st.markdown(
+            "**Maintain Data Collection Methods**")
+        st.markdown(
+            "- Maintain quantity of data being collected while priortizing quality of data (collect additional neccesary information and ensure surveys are accurately representative of the population)")
+    elif score > mid_cutoff:
+        level = "average"
+        annotated_text(
+            (str(score), "progressive", colors[level]),
+        )
+        st.markdown(
+            "**Put more resources and efforts into collecting accurate analytical data**")
+        st.markdown(
+            "- Data is being collected at a fair rate however quality and quantity could be improved")
+        st.markdown(
+            "- Prioritize quality over quantity first")
+
+        st.markdown(
+            "- Data is being collected at a fair rate however quality and quantity could be improved")
+
+        st.markdown(
+            "- Spread out surveyors around the counties")
+
+    elif score > min_cutoff:
+        level = "lower than average"
+        annotated_text(
+            (str(score), "insufficient", colors[level]),
+        )
+
+        st.markdown(
+            "**Step 1: Seriously Refine Data Collection Methods**")
+        st.markdown(
+            "- Confirm county-level survey data is being compared to census data to ensure data is accurately collected")
+        st.markdown(
+            "**Step 2: Aggressively Address Survey Cause**")
+
+        st.markdown(
+            "- Properly address the issues that cause such a lack of broadband access")
+
+    st.write("")
+
 
 if full_county != "All":
     # BROADBAND CHART
@@ -248,7 +300,7 @@ if full_county != "All":
         st.line_chart(chart_data_var)
 
     with col2_1:
-        st.write("bla blah blha")
+        get_vari_score(np.average(var_by_year))
 
     # source = chart_data.reset_index().melt('x', var_name='category', value_name='y')
 
