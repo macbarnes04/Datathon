@@ -94,7 +94,7 @@ if abbr_chosen == "All":
     # st.markdown("#### Overall, " + str(nc_avg_per_access) +
     #             "% of people have access to broadband")
     annotated_text(
-        (str(25) + "%", "higher than national average", "#ff7a7a"),
+        (str(nc_avg_per_access) + "%", "higher than national average", "#ff7a7a"),
         " of families do not have internet at all ",
     )
 
@@ -230,16 +230,25 @@ def get_broad_score(score):
         annotated_text(
             (str(score), "sufficient", colors[level]),
         )
+        st.markdown(
+            "**Continue Making Progress**")
+        st.markdown("- This means that the county is faring well in its progress. However, this also means that this county should look into ensuring its systems of progress are able to be sustained. Further, this county should additionally look at its overall progress in relation to the state goals to ensure that it is on track to meet the State intended 2025 and 2030 goals.")
     elif score > mid_cutff:
         level = "average"
         annotated_text(
-            (str(score), "sufficient", colors[level]),
+            (str(score), "progressive", colors[level]),
         )
+
+        st.markdown("**Observe Other County’s Goals and Actions**")
+        st.markdown("- This progressive rating means that in relation to other counties, this county is averaging well in terms of progress. However, there is room for improvement. This means that it could be in the best interest to inspect what other counties are doing to increase their progress towards the 2025 and 2030 goals.")
     else:
         level = "lower than average"
         annotated_text(
             (str(score), "insufficient", colors[level]),
         )
+        st.markdown(
+            "**Step 2: Observe Overall Progress to Ensure Preparedness**")
+        st.markdown("- Since this rating is relative, it means that this county could be averaging relatively well in relation to other counties but be on or off-track in terms of the state’s overall goals. This county should consider both of these metrics and make decisions about resource allocation, ways to increase community engagement, and ensuring methods of access are equitable.")
         # individualized charts
 
 
@@ -300,15 +309,18 @@ if full_county != "All":
     st.markdown("## " + full_county + "'s Statistics")
 
     col1, col2 = st.columns(2)
-    avgs = [25 for _ in range(len(per_access_year))]
 
     per_access_year = np.array(per_access_year)*100
+
+    good_fit = np.linspace(per_access_year[0], 80, 5)
+
     access_chart_lines = np.array(
-        list(zip(per_access_year, avgs)))
+        list(zip(per_access_year, good_fit)))
 
     with col1:
+
         chart_data = pd.DataFrame(
-            access_chart_lines, columns=[full_county, "NC Average"], index=years)
+            access_chart_lines, columns=[full_county, "On track"], index=(years))
 
         st.write(full_county + ": Broadband access vs. Time")
         st.line_chart(chart_data)
