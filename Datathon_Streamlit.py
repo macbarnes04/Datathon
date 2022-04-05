@@ -12,12 +12,12 @@ nc_counties = gpd.read_file('NC Counties2.geojson')
 nc_data = pd.read_csv("county_data.csv")
 
 
-def df_from_hdf(hdf="database.h5", name="broadband_survey"):
+def df_from_hdf(hdf="./aggregate/database.h5", name="broadband_survey"):
     return pd.read_hdf(hdf, key=name)
 
 
-aggregate = df_from_hdf()
-
+# aggregate = df_from_hdf(key="year_county_survey")
+# st.write(aggregate)
 # DATA PREPROCESSING
 df = df.loc[df["state_code"] == 37]  # only NC
 
@@ -48,7 +48,8 @@ for full_name in full_county_names:
 
 st.sidebar.title("Choose your metrics:")
 
-selectbox_options = ["All", *df["county_name"].value_counts().index.to_list()]
+selectbox_options = [
+    "All", *sorted(df["county_name"].value_counts().index.to_list())]
 full_county = st.sidebar.selectbox(
     'County Name',
     selectbox_options,
@@ -83,9 +84,44 @@ if abbr_chosen == "All":
     # st.markdown("#### Overall, " + str(nc_avg_per_access) +
     #             "% of people have access to broadband")
     annotated_text(
-        "The average percentage of people in North Carolina who have access to broadband is ",
-        (str(nc_avg_per_access) + "%", "lower than national average", "#ff7a7a"),
+        (str(nc_avg_per_access) + "%", "higher than national average", "#ff7a7a"),
+        " of families do not have internet at all ",
     )
+
+    st.write("")
+    annotated_text(
+        "An estimated ",
+        ("500,000", "high", "#ff7a7a"),
+        " of students in NC do not have access to high-speed internet at home ",
+    )
+    st.write("")
+
+    annotated_text(
+        "Black, Hispanic, and Native American households are over ",
+        ("10%", "more likely", colors["lower than average"]),
+        " to have a broadband internet subscription than white or Asian households.",
+    )
+
+    st.markdown("### The Goal")
+    annotated_text(
+        ("2 million", "by 2030", "#00a627"),
+        " of adults with post-secondary degree by 2030.",
+    )
+
+    st.write("")
+    annotated_text(
+        ("80%", "by 2025", "#00a627"),
+        " of households to have at least 100 Mbps download and 20 Mbps upload speeds.",
+    )
+
+    st.write("")
+    annotated_text(
+        ("100%", "by 2025", "#00a627"),
+        " of households with kids to have broadband internet access.",
+    )
+
+    # 2 million adults
+    # broadband internet access
 
     # annotated_text(
     #     "The average percentage of people in the North Carolina state have access to broadband is ",
@@ -112,9 +148,12 @@ else:
         level = "average"
     annotated_text(
         "There are ",
-        (str(spec_per) + "%", level, colors[level]),
-        " of people in " + full_county + " who have access to broadband internet",
+        (str(spec_per), "%", colors[level]),
+        " (" + level + ")" + " of people in " + full_county +
+        " who have access to broadband internet",
     )
+
+
 # folium.Marker(
 #     location=[34.9790, -79.2461],
 #     popup="Mt. Hood Meadows",
